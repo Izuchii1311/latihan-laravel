@@ -1,0 +1,319 @@
+head# Episode 1 - Environtment Setup
+
+Melakukan Instalasi PHP dengan menginstall Xampp Control Panel dan Composer V.2
+
+    {   PHP Version 8.2.4
+        Composer Version 2
+        Laravel Version 10  }
+
+Instalasi Laravel dengan menggunakan Composer create-project command:
+    
+    * composer create-project laravel/laravel example-app
+
+
+
+
+
+# Episode 2 - Laravel Installer 
+
+Instalasi Laravel secara global dengan mendownload Instalasi Laravelnya:
+    
+    * composer global require laravel/installer
+
+    Edit the system environment variables >> Environment Variables >> System Variables -- Path (new), %USERPROFILE%\AppData\Roaming\Composer\vendor\bin
+
+    * laravel new example-app
+
+
+
+
+
+# Episode 3 - Valet
+
+Laravel Valet adalah development environment untuk MacOS minimalist. 
+Dengan menggunakan laravel kita tidak perlu melakukan php artisan serve untuk membuka banyak project.
+
+Valet juga memungkinkan kita untuk membuka aplikasi di web browser tidak lagi menjadi http://127.0.0.1:8000 tetapi cukup memanggil nama aplikasi laravel dan diakhiri dengan .test
+    Contoh : my-app.test
+
+    Laravel Valet -- Windows
+    Url: packagist.org >> cretueusebiu/valet-windows
+    composer global require cretueusebiu/valet-windows			-- Instal Laravel/Valet Global di CMD
+    valet install								                -- Instal Valet
+
+    Melakukan Manual Configurasi DNS di Windows
+    https://mayakron.altervista.org/support/acrylic/Windows10Configuration.htm
+
+    Valet menggunakan port:8080 dimana sudah digunakan oleh xampp maka rubah port xampp agar tidak bentrok.
+    Buka AplikasiXampp >> Apache (Config) >> Apache (httpd.conf)
+        Ubah Listen 80 menjadi 			                        -- Listen 8080 (default)
+        Ubah ServerName localhost:80 menjadi 	                -- ServerName localhost:8080 (default)
+
+    Valet akan membuat configurasi server menjadi lebih mudah.
+    Akan merubah semua folder yang ada di dalam C:/LaravelApp menjadi aplikasi laravel (tempat parkir valet).
+        C:/LaravelApp/ valet park					            -- Sebagai tempat parkir Valet
+        C:/LaravelApp/ valet start 					            -- Untuk Memulai Valet
+
+    Sekarang Xampp akan menjadi localhost:8080
+
+
+
+
+
+# Episode 4 - Routing
+
+Route, adalah untuk menghubungkan Controller dengan View.
+
+Kenapa saat melakukan return kita hanya memanggil view('welcome') tidak dengan blade.php ?
+Karena jika ditulis seperti Instalasi
+
+    return view ('welcome.blade.php') 
+
+    Maka yang terjadi welcome akan dianggap folder, blade akan dianggap folder dan php akan dianggap file.
+
+Membuat View untuk home page dan profile page.
+Parsing variabel dari Route
+    Contoh 
+
+    *   Route::get('/profile', function () {
+            $name = "Izuchii";
+            return view('profile', ['name' => $name]);
+        });
+
+    dan untuk memanggil $name di view profile dengan memanggil menggunakan blade {{ $name }}
+
+
+
+
+
+# Episode 5 - Bagaimana dengan Assets
+
+Untuk membuat assets untuk css, js, image disimpan di dalam public.
+Maka untuk memangil file eksternal css dapat dilakukan dengan cara.
+
+    * href="css/style.css" rel="stylesheet"
+
+    namun jika kita mempunyai view di dalam folder 
+    misalkan posts >> first-post.blade.php
+    Lalu memanggil href dengan cara diatas. Maka tidak akan bisa terpanggil karena tidak dikenalinya.
+    Untuk solfing problem dengan memberikan /css/... karena / akan dianggap sebagai main url yaitu my-app yang akan menargetkan ke file yang ada di public.
+
+    Maka penulisan yang seharusnya menjadi seperti ini.
+
+        * href="/css/style.css" rel="stylesheet"
+
+        Tetapi ada cara lain yaitu menggunakan asset()
+        Mengapa menggunakan asset, supaya alangkah baiknya kita bisa dapat dengan mudah mengetahui url filenya.
+
+        Maka jika ingin menggunakan asset() 
+        Di dalam route berikan asset
+
+            * Route::get('/profile', function () {
+                asset('css/style.png');
+                return view('profile');
+            });
+
+        Maka untuk memanggilnya di dalam view sekarang dengan cara.
+
+            * <link src="{{ asset('css/style.css') }}" rel="stylesheet">
+
+
+
+
+
+# Episode 6 - Layout dengan Blade Part 1
+
+Jika kita menggunakan asset misalkan untuk css, maka akan tersimpan cache sementara untuk halamannya. Tanpa perlu di load berulang.
+
+Layouting dengan memisahkan Navbar karena itu static. 
+Maka kita membuat Folder Layout >> Navbar.blade.php
+    untuk memanggil navbar di semua halaman page maka harus melakukan include file navbar.blade.php
+
+    * @include('layouts.navbar')
+
+
+
+
+
+# Episode 7 - Layout dengan Blade Part 2
+
+Memisahkan header sebagai file master untuk htmlnya.
+Membuat file baru di dalam layouts dengan nama app.blade.php
+Maka di halaman yang lainnya tidak perlu menuliskan html dari awal lagi. Cukup dengan melakukan @extends
+
+    * @extends('layout.app')
+
+    untuk menuliskan bagian misalkan app.blade.php sebagai template, yang dimana halaman lain melakukan extends.
+    agar dapat memasukan html dari setiap halaman yang dibuat kedalam app.blade.php
+
+    maka kita buat yield di halaman app.blade.php
+
+        * @yield('content')
+
+        untuk mengisikan contentnya maka di halaman home, profile, contact, dll
+        kita panggil
+
+        * @section('content')
+
+          @endsection
+
+Memberikan title untuk setiap halaman secara dinamis, maka di dalam head cukup panggil title
+
+    * <head> {{ $title }} | Izuchii </head>
+
+    Dan untuk memberikan title kita dapat memberikannya disetiap page di dalam extends.
+
+    * @extends('layouts.app', ['title' => 'Home Page'])
+
+
+
+
+
+# Episode 8 - Memahami Blade Komponen
+
+Membuat folder view baru Components lalu di dalamnya buat file alert.blade.php
+Di dalamnya kita membuat code seperti berikut
+
+    * <div class="alert">
+         <div class="alert-header">  
+             {{ $title }}
+         </div>
+    
+         {{ $slot }}
+     </div>
+
+    dan juga buat style untuk css class alert.
+    Lalu apa itu {{ $slot }} ?
+        Itu supaya kita bisa mengisikan contentnya.
+
+        Contohnya, maka untuk di halaman home kita panggil syntax blade yaitu component
+        Apa itu component, itu seperti supaya kita mengisikan component.
+        Karena di dalam file alert.blade.php kita memanggil {{ $title }} dan {{ $slot }}
+
+            * @component('components.alert')
+                 @slot('title')
+                    <b>Header Components</b>
+                 @endslot
+
+                 Ini Adalah childern.
+              @endcomponent
+
+        {{ $title }} akan diisikan oleh @slot('title')
+        dan {{ $slot }} akan diisi oleh @component('components.alert')
+
+
+Komponen berikut adalah termasuk Anonymouse Component.
+Dan itu bisa di persingkat lagi, namun Componentnya harus ada di dalam Folder Components.
+
+    cukup ganti dengan (karena ini akan otomatis memanggil file component di dalam folder components)
+
+        * <x-alert>
+             @slot('title')
+                 <b>Header Components</b>
+             @endslot
+
+             Ini Adalah childern.
+          </x-alert>
+
+
+
+
+
+
+# Episode 9 - Passing Data Kedalam Komponen
+
+Untuk membuat component menggunakan artisan dapat dengan cara.
+
+    * php artisan make:component navbar
+
+    Maka laravel akan membuatkan 1 file navbar.blade.php di dalam folder components.
+    Dan di dalam App akan dibuatkan folder baru yaitu
+    View\Components dan berisi 1 file yaitu Navbar.php
+
+    Yang dimana component Navbar.php secara default akan pergi ke components navbar.blade.php
+
+
+    Namun disini kita buat sebuah array untuk navbar di dalam app\view\components\navbar.php
+
+        * public function render(): View|Closure|string
+             {
+                 $navbar = [
+                     'Home' => '/',
+                     'Contact' => '/contact',
+                     'About' => '/about',
+                     'Profile' => '/Profile',
+                 ];
+                return view('layouts.navbar', compact('navbar'));
+             }
+
+    Maka kita hapus saja file navbar.blade di folder components. Karena navbar termasuk salah satu layout oleh karena itu kita lakukan return dan passing data ke halaman layout di navbar.blade.php .
+
+    Maka di layouts\navbar.blade.php
+
+        * <ul class="my-navbar">
+             @foreach ($navbar as $name => $url)
+                <li><a href="{{ $url }}">{{ $name }}</a></li>
+             @endforeach
+         </ul>
+
+
+    Panggil navbar yg telah dibuat oleh component di dalam App.blade.php
+
+        * <x-navbar></x-navbar>
+
+    Namun mengapa bisa melakukan Anonymouse Component meskipun diluar folder Components?
+    Karena telah ada folder View\Components sebagai penggantinya
+
+    Mengapa ini dilakukakan ?
+    Karena berikut ini adalah cara melakukan Passing data dan juga Membuat navbar menjadi lebih dinamis.
+    Dan disini juga kita menggunakan tag blade yaitu component.
+        
+        Menggunakan @component itu lebih banyak benefitnya dibanding menggunakan include. 
+        Karena jika menggunakan component dapat melakukan passing data beserta classnya.
+
+
+
+
+
+# Episode 10 - Layout dengan Komponen
+
+Merubah semua page menjadi dinamis menggunakan component
+
+    * php artisan make:component AppLayout
+
+Maka akan ada folder views\components\app-layout.blade.php
+dan folder app\View\Components\AppLayout.php
+
+Untuk sekarang kita akan fil app.blade.php bukan app-layout.blade.php
+oleh karena itu di dalam file AppLayout.php arahkan return viewnya menjadi ke
+
+    * return view('layouts.app');
+
+Maka dengan ini akan termasuk Anonymouse Component, untuk memanggil dan mengisikan contentnya secara biasa dengan keyword @component atau dengan <x-nama_component> .. </x-nama_component>
+
+Maka di page Home kita cukup panggil 
+
+    * <x-app-layout>                            - jika halaman yang lain berikan title="halaman About"
+          <h1>Halaman Home</h1>
+      </x-app-layout>
+
+    itu sudah memanggil layout untuk halaman home untuk menampilkannya jangan lupa di app.blade.php
+    panggil layoutnya dengan
+    
+    {{ $slot }}
+
+    Mengapa tidak @slot() ... @endslot? 
+    Karena kita akan memanggil semuanya secara langsung maka dapat menggunakan {{  }}
+
+    lalu buat juga default url di dalam AppLayout.php
+
+        * public $title;
+            public function __construct($title = null)
+            {
+                // Default Url
+                $this->title = $title ?? "Izuchii";
+            }
+
+    Karena jika x-layout tidak memiliki title untuk headnya maka akan dimemanggil default url.
+
+Dengan cara ini membuat code menjadi lebih dinamis dengan memanggil setiap Classnya.
